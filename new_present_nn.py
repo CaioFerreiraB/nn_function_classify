@@ -17,7 +17,7 @@ from agent import Agent
 
 n_t_set = 700
 n_e_set = 300
-epochs = 100
+epochs = 5
 
 def parse_args():
 	parser = argparse.ArgumentParser()
@@ -35,10 +35,10 @@ def create_set(ammount, proportion):
 	label1 = 1
 
 	for i in range(ammount):
-		if random.randrange(1, 100) > proportion:
+		if i%2 == 0:
 			x = random.randrange(1, 1000)
 			y = math.sin(x/4) + math.sin(x+1) + math.cos(math.sin(x)) + 4 + math.log(x)
-			label = 0
+			label = [1, 0]
 
 			inputs = [x, y]
 			data.append(inputs)
@@ -48,7 +48,7 @@ def create_set(ammount, proportion):
 		else:
 			x = random.randrange(1, 1000)
 			y = math.sin(x)*math.cos((x^2)/10) + 2
-			label = 1
+			label = [0, 1]
 
 			inputs = [x, y]
 			data.append(inputs)
@@ -56,6 +56,14 @@ def create_set(ammount, proportion):
 
 			label1 += 1
 
+	f = open("labels_creation.txt","w+")
+	for label in labels:
+		f.write(str(label))
+	f.close()
+
+	print(label0)
+	print(label1)
+	
 	return data, labels
 
 def main():
@@ -92,12 +100,11 @@ def main():
 			label1 += 1
 
 		inputs = [x, y]
-		inputs = torch.FloatTensor(inputs).unsqueeze(0)
 
-		output = neural_net(inputs)
+		output = agent.eval(inputs)
 
 		#print(output[0].argmax(0).unsqueeze(0))
-		if output[0].argmax(0).unsqueeze(0).item() == 0:
+		if output == 0:
 			predicted0 += 1
 		else:
 			predicted1 += 1
