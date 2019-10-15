@@ -13,9 +13,10 @@ from model import Net
 
 
 class Agent():
-	def __init__(self):
+	def __init__(self, n_layers, in_neurons, out_neurons):
 		# Build network
-		self.network = Net()
+		self.network = Net(n_layers, in_neurons, out_neurons)
+		self.n_layers = n_layers
 
 		# Create optimizer
 		self.optimizer = optim.SGD(self.network.parameters(), lr=0.0001)
@@ -38,45 +39,21 @@ class Agent():
 
 		losses = []
 
-		f = open("labels_train.txt","w+")
-
 		for i in range(epochs):
 
 			t_set, t_labels = shuffle(t_set, t_labels)
 
 			j = 0
-			class0 = 0
-			class1 = 0
-			right0 = 0
-			right1 = 0
 			for t in t_set:
 				t = torch.FloatTensor(t)
 
-				output = self.network.forward(t)				
+				output = self.network.forward(t, self.n_layers)				
 
 				label = torch.FloatTensor(t_labels[j])
-				f.write(str(label))
+				j += 1
 
 				loss = self.optimize(label, output)
 				losses.append(loss)
-
-
-				if label[0].item() == 1:
-					class0 += 1
-					if output.argmax(0).unsqueeze(0).item() == 0:
-						right0 += 1
-				if label[0].item() == 0:
-					class1 += 1
-					if output.argmax(0).unsqueeze(0).item() == 1:
-						right1 += 1
-
-				j += 1
-
-
-		print('classe0:', class0)
-		print('classe1:', class1)
-		print('right0:', right0)
-		print('right1:', right1)
 
 		return losses
 
@@ -84,6 +61,41 @@ class Agent():
 		self.network.train()
 		inputs = torch.FloatTensor(inputs)
 		
-		output = self.network.forward(inputs)
+		output = self.network.forward(inputs, self.n_layers)
 
 		return output.argmax(0).unsqueeze(0).item()
+
+	def eval_batch(self, e_set, e_label):
+		self.network.train()
+
+		false_positive = 0
+		false_negative = 0
+		true_positive = 0
+		true_negative = 0
+
+		right = 0
+		wrong = 0
+		i = 0
+
+		for inputs in e_set:
+			inputs = torch.FloatTensor(inputs)
+			output = self.network.forward(inputs, self.n_layers)
+			output = output.argmax(0).unsqueeze(0).item()
+			
+			label = np.asarray(e_label[i]).argmax()
+			i += 1
+
+			if output == 0 and label == 0: 
+				true_positive +=1
+				right += 1
+			elif output == 0 and label == 1:
+				false_positive +=1
+				wrong += 1
+			elif output == 1 and label == 1: 
+				true_negative +=1
+				right += 1
+			elif output == 1 and label == 0: 
+				false_negative +=1
+				wrong += 1
+
+		return false_positive, false_negative, true_positive, true_negative
