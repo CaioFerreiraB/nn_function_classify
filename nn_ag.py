@@ -94,7 +94,7 @@ def init_population():
 		
 	return individuals
 
-def eval_population(individuals, fitness, t_set, t_labels, e_set, e_labels):
+def eval_population(individuals, fitness, t_set, t_labels, e_set, e_labels, device):
 	print('EVALUATION -------------------------------------------------------------')
 
 	for i in range(tam_population):
@@ -102,7 +102,7 @@ def eval_population(individuals, fitness, t_set, t_labels, e_set, e_labels):
 
 		fitness_vec = []
 		for j in range(n_trainings):
-			agent = Agent(len(individual[0]), individual[0], individual[1])
+			agent = Agent(len(individual[0]), individual[0], individual[1], device)
 
 			agent.train(t_set, t_labels, epochs)
 
@@ -192,6 +192,7 @@ def main():
 	print('fitnes:\n', fitness)
 
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+	print('\n'+str(device)+'\n')
 
 
 	best_value = 0
@@ -208,7 +209,7 @@ def main():
 
 	for i in range(n_generations):
 		print('GENERATION: ', i)
-		eval_population(individuals, fitness, t_set, t_labels, e_set, e_labels)
+		eval_population(individuals, fitness, t_set, t_labels, e_set, e_labels, device)
 		best_value, best_index = elitism(fitness, individuals)
 		f = open("best_value3.txt","a+")
 		f.write(str(i) + ',' + str(best_value) + ',' + str(best_index) + ',' + str(individuals[best_index, 0]) + ',' + str(individuals[best_index, 1]) + '\n')

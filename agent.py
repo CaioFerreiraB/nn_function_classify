@@ -13,9 +13,10 @@ from model import Net
 
 
 class Agent():
-	def __init__(self, n_layers, in_neurons, out_neurons):
+	def __init__(self, n_layers, in_neurons, out_neurons, device):
 		# Build network
-		self.network = Net(n_layers, in_neurons, out_neurons)
+		self.device = device
+		self.network = Net(n_layers, in_neurons, out_neurons).to(self.device)
 		self.n_layers = n_layers
 
 		# Create optimizer
@@ -45,11 +46,11 @@ class Agent():
 
 			j = 0
 			for t in t_set:
-				t = torch.FloatTensor(t)
+				t = torch.FloatTensor(t).to(self.device)
 
 				output = self.network.forward(t, self.n_layers)				
 
-				label = torch.FloatTensor(t_labels[j])
+				label = torch.FloatTensor(t_labels[j]).to(self.device)
 				j += 1
 
 				loss = self.optimize(label, output)
@@ -59,7 +60,7 @@ class Agent():
 
 	def eval(self, inputs):
 		self.network.train()
-		inputs = torch.FloatTensor(inputs)
+		inputs = torch.FloatTensor(inputs).to(self.device)
 		
 		output = self.network.forward(inputs, self.n_layers)
 
@@ -78,7 +79,7 @@ class Agent():
 		i = 0
 
 		for inputs in e_set:
-			inputs = torch.FloatTensor(inputs)
+			inputs = torch.FloatTensor(inputs).to(self.device)
 			output = self.network.forward(inputs, self.n_layers)
 			output = output.argmax(0).unsqueeze(0).item()
 			
