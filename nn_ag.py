@@ -18,13 +18,17 @@ import copy
 from agent import Agent
 
 tam_population = 8
-mutation_rate = 0.001
+#---------------------------------------------------------------------------------
+mutation_rate = 0.001 # perguntar
+#---------------------------------------------------------------------------------
 n_generations = 1000000
 max_layers = 4 # max number of layers of the neural network
 min_neurons = 2 # min number of neurons of a layer on the neural network
-max_neurons = 300 # max number of neurons of a layer on the neural network
+max_neurons = 30 # max number of neurons of a layer on the neural network
 epochs = 10
 n_trainings = 10 # MUST be higher or equal do 3 (n_trainings >= 3)
+neurons_constant = 0.1
+
 
 def parse_args():
 	parser = argparse.ArgumentParser()
@@ -94,26 +98,27 @@ def eval_population(individuals, fitness, t_set, t_labels, e_set, e_labels):
 	print('EVALUATION -------------------------------------------------------------')
 
 	for i in range(tam_population):
-		print('-> individual ', i)
 		individual  = individuals[i]
 
 		fitness_vec = []
 		for j in range(n_trainings):
-			print('    -> training ', j)
 			agent = Agent(len(individual[0]), individual[0], individual[1])
 
 			agent.train(t_set, t_labels, epochs)
 
 			false_positive, false_negative, true_positive, true_negative = agent.eval_batch(e_set, e_labels)
 
-			fitness_vec.append((true_positive + true_negative) - (false_positive + false_negative)) 
+			fitness_vec.append(((true_positive + true_negative) - (false_positive + false_negative)) - ((sum(individual[0]) + 2)*neurons_constant)) 
 
 			# another option to fitness function could be the hit rate of the network
 			# fitness[i] = (true_positive + true_negative) / ((true_positive + true_negative) + (false_positive + false_negative))
+			print('    -> training ', j, '| fitness: ', fitness_vec[j], '| individual: ', individual[0])
 
 		fitness_sum = sum(fitness_vec) - min(fitness_vec) - max(fitness_vec)
 
+
 		fitness[i] = fitness_sum/(n_trainings-2)
+		print('-> individual ', i, 'fitness: ', fitness[i])
 
 
 	print('-> fitness: ', fitness)
@@ -205,7 +210,7 @@ def main():
 		print('GENERATION: ', i)
 		eval_population(individuals, fitness, t_set, t_labels, e_set, e_labels)
 		best_value, best_index = elitism(fitness, individuals)
-		f = open("best_value1.txt","a+")
+		f = open("best_value3.txt","a+")
 		f.write(str(i) + ',' + str(best_value) + ',' + str(best_index) + ',' + str(individuals[best_index, 0]) + ',' + str(individuals[best_index, 1]) + '\n')
 		f.close()
 		print('RESULT -------------------------------------------------------------')

@@ -8,7 +8,7 @@ ax1 = fig.add_subplot(1,1,1)
 plt.style.use('seaborn-dark')
 
 def animate(i):
-    pullData = open("best_value1.txt","r").read()
+    pullData = open("best_value2.txt","r").read()
     dataArray = pullData.split('\n')
     xar = []
     yar = []
